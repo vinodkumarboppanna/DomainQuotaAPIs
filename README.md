@@ -11,10 +11,14 @@ Wiki Page -> https://wiki.openstack.org/wiki/APIs_for_Domain_Quota_Driver
 
 
 
-Also, add new variable under nova.quota section
+Also, add new variable in /etc/nova/nova.conf under nova.quota section
+
+
 keystone_auth_url=http://localhost:35357/v3/
 
+
 The localhost can be changed to the IP Address of the machine hosting keystone 
+
 
 
 
