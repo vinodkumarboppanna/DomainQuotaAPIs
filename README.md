@@ -16,7 +16,6 @@ The localhost can be changed to the IP Address of the machine hosting keystone
 Files changed are
 
 keystoneclient/access.py
-
 keystoneclient/base.py
 keystoneclient/httpclient.py
 keystoneclient/v2_0/client.py
