@@ -8,10 +8,16 @@ Blue Print -> https://blueprints.launchpad.net/nova/+spec/domain-quota-driver-ap
 
 Wiki Page -> https://wiki.openstack.org/wiki/APIs_for_Domain_Quota_Driver
 
+
+
+
 Also, add new variable under nova.quota section
 keystone_auth_url=http://localhost:35357/v3/
 
 The localhost can be changed to the IP Address of the machine hosting keystone 
+
+
+
 
 Files changed are
 
@@ -50,11 +56,15 @@ nova/db/sqlalchemy/api.py
 nova/db/sqlalchemy/models.py
 
 
+
+
 Files created are
 
 nova/api/openstack/compute/contrib/domain_quotas.py
 
 nova/db/sqlalchemy/migrate_repo/versions/230_create_domain_quotas_tables.py
+
+
 
 
 and you have to run the following command to create the tables for domain quotas
