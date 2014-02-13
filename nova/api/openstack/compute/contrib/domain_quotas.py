@@ -85,7 +85,7 @@ class DomainQuotaSetsController(wsgi.Controller):
         if (user_id == None) and (project_id == None):
             values = QUOTAS.get_domain_quotas(context, id, usages=usages)
         elif user_id:
-            values = QUOTAS.get_domain_user_quotas(context, project_id, user_id,
+            values = QUOTAS.get_domain_user_quotas(context, id, project_id, user_id,
                                             usages=usages)
         else:
             values = QUOTAS.get_domain_project_quotas(context, project_id, usages=usages)
@@ -108,10 +108,10 @@ class DomainQuotaSetsController(wsgi.Controller):
                  return self._format_quota_set(id, self._get_quotas(context, id))
             elif user_id:
                  nova.context.authorize_project_user_context(context, project_id, user_id)
-                 return self._format_quota_set(project_id, self._get_quotas(context, id, user_id=user_id, project_id=project_id))
+                 return self._format_quota_set(user_id, self._get_quotas(context, id, user_id=user_id, project_id=project_id))
             else:
                  nova.context.authorize_domain_project_context(context, id, project_id)
-                 return self._format_quota_set(user_id, self._get_quotas(context, id, project_id=project_id))
+                 return self._format_quota_set(project_id, self._get_quotas(context, id, project_id=project_id))
         except exception.NotAuthorized:
             raise webob.exc.HTTPForbidden()
 
@@ -220,7 +220,7 @@ class DomainQuotaSetsController(wsgi.Controller):
     def defaults(self, req, id):
         context = req.environ['nova.context']
         authorize_show(context)
-        return self._format_quota_set(id, QUOTAS.get_defaults(context))
+        return self._format_quota_set(id, QUOTAS.get_defaults_with_domain_driver(context))
 
     def delete(self, req, id):
         context = req.environ['nova.context']

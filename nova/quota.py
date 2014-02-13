@@ -15,7 +15,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-#
+
 """Quotas for instances, and floating ips."""
 
 import datetime
@@ -30,7 +30,6 @@ from nova.openstack.common.gettextutils import _
 from nova.openstack.common import importutils
 from nova.openstack.common import log as logging
 from nova.openstack.common import timeutils
-
 
 LOG = logging.getLogger(__name__)
 
@@ -675,7 +674,7 @@ class DomainQuotaDriver(object):
 
         return quotas
 
-    def get_user_quotas(self, context, resources, project_id, user_id,
+    def get_user_quotas(self, context, resources, domain_id, project_id, user_id,
                         quota_class=None, defaults=True,
                         usages=True):
         """
@@ -684,7 +683,8 @@ class DomainQuotaDriver(object):
 
         :param context: The request context, for access checks.
         :param resources: A dictionary of the registered resources.
-        :param project_id: The ID of the project to return quotas for.
+        :param domain_id: The ID of the domain.
+        :param project_id: The ID of the project.
         :param user_id: The ID of the user to return quotas for.
         :param quota_class: If project_id != context.project_id, the
                             quota class cannot be determined.  This
@@ -708,16 +708,17 @@ class DomainQuotaDriver(object):
                                                          project_id,
                                                          user_id)
         LOG.debug(_("User Quotas %s"), user_quotas)
-        return self._process_user_quotas(context, resources, project_id, user_id,
+        return self._process_user_quotas(context, resources, domain_id, project_id, user_id,
                                     user_quotas, quota_class,
                                     defaults=defaults, usages=user_usages)
 
-    def _process_user_quotas(self, context, resources, project_id, user_id, quotas,
+    def _process_user_quotas(self, context, resources, domain_id, project_id, user_id, quotas,
                         quota_class=None, defaults=True, usages=None):
         modified_quotas = {}
 
         # Use the project quota for default user quota.
         proj_quotas = db.quota_get_all_by_project(context, project_id)
+        domain_quotas = db.quota_get_all_by_domain(context, domain_id)
         default_quotas = self.get_defaults(context, resources)
 
         for resource in resources.values():
@@ -726,7 +727,7 @@ class DomainQuotaDriver(object):
                 continue
 
             limit = quotas.get(resource.name, proj_quotas.get(
-                        resource.name, default_quotas[resource.name]))
+                        resource.name, (domain_quotas.get(resource.name, default_quotas[resource.name]))))
             modified_quotas[resource.name] = dict(limit=limit)
 
             # Include usages if desired.  This is optional because one
@@ -1008,8 +1009,8 @@ class DomainQuotaDriver(object):
                 project_quotas1 = self.get_project_quotas(context, resources, project_id, defaults=True, usages=True, remains=True)
                 LOG.debug(_("project quotas1 : %s") % project_quotas1)
 
-                user_quotas = self.get_user_quotas(context, resources, project_id, user_id)
-                user_quotas1 = self.get_user_quotas(context, resources, project_id, user_id, defaults=False, usages=False)
+                user_quotas = self.get_user_quotas(context, resources, domain_id, project_id, user_id)
+                user_quotas1 = self.get_user_quotas(context, resources, domain_id, project_id, user_id, defaults=False, usages=False)
 
                 for key, value in user_quotas.items():
                     minimum = int(value['in_use'] + value['reserved'])
@@ -1832,6 +1833,14 @@ class QuotaEngine(object):
 
         return self._driver.get_class_quotas(context, self._resources,
                                              quota_class, defaults=defaults)
+
+    def get_defaults_with_domain_driver(self, context):
+        """Retrieve the default quotas.
+
+        :param context: The request context, for access checks.
+        """
+
+        return self._driver_domain.get_defaults(context, self._resources)
      
     def get_user_quotas(self, context, project_id, user_id, quota_class=None,
                         defaults=True, usages=True):
@@ -1936,12 +1945,13 @@ class QuotaEngine(object):
                                               usages=usages,
                                               remains=remains)
 
-    def get_domain_user_quotas(self, context, project_id, user_id, quota_class=None,
+    def get_domain_user_quotas(self, context, domain_id, project_id, user_id, quota_class=None,
                         defaults=True, usages=True):
         """Retrieve the quotas for the given user and project.
 
         :param context: The request context, for access checks.
-        :param project_id: The ID of the project to return quotas for.
+        :param domain_id: The ID of the domain 
+        :param project_id: The ID of the project.
         :param user_id: The ID of the user to return quotas for.
         :param quota_class: If project_id != context.project_id, the
                             quota class cannot be determined.  This
@@ -1954,7 +1964,7 @@ class QuotaEngine(object):
                        will also be returned.
         """
 
-        return self._driver.get_user_quotas(context, self._resources,
+        return self._driver_domain.get_user_quotas(context, self._resources, domain_id,
                                             project_id, user_id,
                                             quota_class=quota_class,
                                             defaults=defaults,
