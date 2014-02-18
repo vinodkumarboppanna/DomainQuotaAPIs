@@ -1,6 +1,6 @@
-DomainQuotaAPIs
+DomainQuotaAPIs and Doman Quota Command Line Management
 
-Nova V2 APIs for Domain Quota Management
+Nova V2 APIs & Command Line for Domain Quota Management
 
 Please check the following documents to understand more about this project
 
@@ -59,6 +59,9 @@ nova/db/sqlalchemy/api.py
 
 nova/db/sqlalchemy/models.py
 
+novaclient/v1_1/shell.py
+
+novaclient/v1_1/client.py
 
 
 
@@ -68,9 +71,12 @@ nova/api/openstack/compute/contrib/domain_quotas.py
 
 nova/db/sqlalchemy/migrate_repo/versions/230_create_domain_quotas_tables.py
 
+novaclient/v1_1/domain_quotas.py
 
 
 
 and you have to run the following command to create the tables for domain quotas
 
 nova-manage db sync
+
+
