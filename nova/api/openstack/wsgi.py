@@ -983,11 +983,9 @@ class Resource(wsgi.Application):
             return Fault(webob.exc.HTTPBadRequest(explanation=msg))
 
         # Run pre-processing extensions
-        LOG.debug(_("asdfasdfasdfasdfasdfasdfasdf"))
         response, post = self.pre_process_extensions(extensions,
                                                      request, action_args)
 
-        LOG.debug(_("asdfasdfasdfasdfasdfasdfasdf"))
         if not response:
             try:
                 with ResourceExceptionHandler():
@@ -995,7 +993,6 @@ class Resource(wsgi.Application):
             except Fault as ex:
                 response = ex
 
-        LOG.debug(_("asdfasdfasdfasdfasdfasdfasdf"))
         if not response:
             # No exceptions; convert action_result into a
             # ResponseObject
